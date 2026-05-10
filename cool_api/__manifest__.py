@@ -21,6 +21,8 @@ Long description of module's purpose
     'depends': [#'base',
                 'account',
                 'contacts',
+                'portal',
+                'website'
                 ],
 
     # always loaded
@@ -28,6 +30,7 @@ Long description of module's purpose
         # 'security/ir.model.access.csv',
         #'views/views.xml',
         'views/res_users_views.xml',
+        'views/portal_invoice_templates.xml',
     ],
     # only loaded in demonstration mode
     'demo': [

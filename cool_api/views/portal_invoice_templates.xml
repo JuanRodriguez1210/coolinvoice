@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 1. Portal home – dos botones -->
+    <template id="portal_my_home_invoice_entry"
+              name="Portal: Invoice Entry"
+              inherit_id="portal.portal_my_home"
+              priority="40">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Mis Facturas</t>
+                <t t-set="url">/my/invoices</t>
+                <t t-set="placeholder_count">invoice_count</t>
+            </t>
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Nueva Factura</t>
+                <t t-set="url">/my/invoices/create</t>
+                <t t-set="count">0</t>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- 2. Listado de facturas -->
+    <template id="portal_invoice_list" name="Mis Facturas">
+        <t t-call="portal.portal_layout">
+            <t t-set="head">
+                <style>
+                    :root{--ink:#0f1117;--ink-muted:#6b7280;--surface:#fff;--surface-2:#f8f9fc;--border:#e5e7eb;--accent:#1a56db;--radius:10px;--shadow:0 2px 12px rgba(0,0,0,.07)}
+                    .inv-wrapper{max-width:900px;margin:2rem auto;font-family:'Segoe UI',system-ui,sans-serif;color:var(--ink)}
+                    .inv-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+                    .inv-card-header{padding:1.25rem 1.75rem;border-bottom:1px solid var(--border);background:var(--surface-2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem}
+                    .inv-card-header h2{margin:0;font-size:1.1rem;font-weight:700}
+                    .btn-new{padding:.5rem 1.2rem;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:.88rem;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:.4rem}
+                    .btn-new:hover{opacity:.9;color:#fff;text-decoration:none}
+                    table.inv-table{width:100%;border-collapse:collapse;font-size:.9rem}
+                    table.inv-table thead th{text-align:left;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-muted);padding:.75rem 1rem;border-bottom:2px solid var(--border)}
+                    table.inv-table tbody td{padding:.75rem 1rem;border-bottom:1px solid var(--border);vertical-align:middle}
+                    table.inv-table tbody tr:last-child td{border-bottom:none}
+                    table.inv-table tbody tr:hover td{background:var(--surface-2)}
+                    .badge{display:inline-flex;align-items:center;padding:.2rem .6rem;border-radius:999px;font-size:.75rem;font-weight:700}
+                    .badge-posted{background:#d1fae5;color:#065f46}
+                    .badge-draft{background:#fef3c7;color:#92400e}
+                    .badge-cancel{background:#fee2e2;color:#991b1b}
+                    .amount{font-variant-numeric:tabular-nums;font-weight:600}
+                    .empty-state{padding:3rem;text-align:center;color:var(--ink-muted)}
+                    .empty-state p{margin:.5rem 0 1.25rem}
+                </style>
+            </t>
+            <div class="inv-wrapper">
+                <div class="inv-card">
+                    <div class="inv-card-header">
+                        <h2>Mis Facturas</h2>
+                        <a href="/my/invoices/create" class="btn-new">
+                            + Nueva Factura
+                        </a>
+                    </div>
+                    <t t-if="invoices">
+                        <div style="overflow-x:auto">
+                            <table class="inv-table">
+                                <thead>
+                                    <tr>
+                                        <th>Número</th>
+                                        <th>Fecha</th>
+                                        <th>Cliente</th>
+                                        <th>Estado</th>
+                                        <th style="text-align:right">Total</th>
+                                        <th style="text-align:right">Pendiente</th>
+                                        <th style="text-align:center">PDF</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="invoices" t-as="inv">
+                                        <tr>
+                                            <td>
+                                                <a t-attf-href="/web#action=account.action_move_out_invoice_type&amp;id=#{inv.id}"
+                                                   target="_blank" style="font-weight:600;color:var(--accent)">
+                                                    <t t-esc="inv.name"/>
+                                                </a>
+                                            </td>
+                                            <td><t t-esc="inv.invoice_date or '—'"/></td>
+                                            <td><t t-esc="inv.partner_id.name"/></td>
+                                            <td>
+                                                <span t-if="inv.state == 'posted'" class="badge badge-posted">Confirmada</span>
+                                                <span t-elif="inv.state == 'draft'" class="badge badge-draft">Borrador</span>
+                                                <span t-else="" class="badge badge-cancel">Cancelada</span>
+                                            </td>
+                                            <td style="text-align:right" class="amount">
+                                                <t t-esc="inv.currency_id.symbol"/>&#160;<t t-esc="'{:,.2f}'.format(inv.amount_total)"/>
+                                            </td>
+                                            <td style="text-align:right" class="amount">
+                                                <t t-esc="inv.currency_id.symbol"/>&#160;<t t-esc="'{:,.2f}'.format(inv.amount_residual)"/>
+                                            </td>
+                                            <td style="text-align:center">
+                                                <a t-attf-href="/report/pdf/account.report_invoice/#{inv.id}"
+                                                   target="_blank"
+                                                   title="Descargar PDF"
+                                                   style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:6px;background:#f3f4f6;color:#374151;text-decoration:none;font-size:15px">
+                                                    &#128438;
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="padding:1rem 1.5rem;border-top:1px solid var(--border)">
+                            <t t-call="portal.pager" t-if="pager"/>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div class="empty-state">
+                            <p>No tienes facturas todavía.</p>
+                            <a href="/my/invoices/create" class="btn-new">Crear primera factura</a>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- 3. Formulario de creación -->
+    <template id="portal_create_invoice" name="Crear Factura">
+        <t t-call="portal.portal_layout">
+            <t t-set="head">
+                <style>
+                    :root{--ink:#0f1117;--ink-muted:#6b7280;--surface:#fff;--surface-2:#f8f9fc;--border:#e5e7eb;--accent:#1a56db;--accent-h:#1e429f;--danger:#dc2626;--radius:10px;--shadow:0 2px 12px rgba(0,0,0,.07)}
+                    .inv-wrapper{max-width:900px;margin:2.5rem auto;font-family:'Segoe UI',system-ui,sans-serif;color:var(--ink)}
+                    .inv-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+                    .inv-card-header{padding:1.5rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;background:var(--surface-2)}
+                    .inv-card-header h2{margin:0;font-size:1.2rem;font-weight:700}
+                    .inv-card-header p{margin:.15rem 0 0;font-size:.83rem;color:var(--ink-muted)}
+                    .inv-card-body{padding:2rem}
+                    .inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem 1.5rem}
+                    .inv-grid .full{grid-column:1/-1}
+                    @media(max-width:600px){.inv-grid{grid-template-columns:1fr}.inv-grid .full{grid-column:1}}
+                    .inv-field{display:flex;flex-direction:column;gap:.35rem}
+                    .inv-field label{font-size:.82rem;font-weight:600;color:var(--ink-muted);text-transform:uppercase;letter-spacing:.04em}
+                    .req{color:var(--danger);margin-left:2px}
+                    .inv-input,.inv-select{width:100%;padding:.55rem .8rem;border:1px solid var(--border);border-radius:7px;font-size:.93rem;background:var(--surface);color:var(--ink);transition:border-color .15s,box-shadow .15s;box-sizing:border-box}
+                    .inv-input:focus,.inv-select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,86,219,.12)}
+                    .inv-section-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-muted);padding:.5rem 0 .75rem;border-bottom:1px solid var(--border);margin:1.75rem 0 1.25rem;display:flex;align-items:center;gap:.5rem}
+                    .inv-lines-wrap{overflow-x:auto}
+                    .inv-lines{width:100%;border-collapse:collapse;font-size:.88rem}
+                    .inv-lines thead th{text-align:left;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-muted);padding:.5rem .4rem;border-bottom:2px solid var(--border);white-space:nowrap}
+                    .inv-lines tbody tr{border-bottom:1px solid var(--border)}
+                    .inv-lines tbody tr:last-child{border-bottom:none}
+                    .inv-lines tbody td{padding:.4rem .3rem;vertical-align:top}
+                    .col-prod{min-width:155px}.col-desc{min-width:130px}.col-acct{min-width:145px}.col-qty{width:72px}.col-price{width:100px}.col-total{width:90px;text-align:right}.col-del{width:34px;text-align:center}
+                    .line-total{font-weight:600;font-variant-numeric:tabular-nums;padding-top:.6rem;display:block}
+                    .btn-del-line{border:none;background:none;cursor:pointer;padding:.3rem;border-radius:5px;color:var(--ink-muted);transition:background .15s,color .15s;margin-top:.2rem}
+                    .btn-del-line:hover{background:#fee2e2;color:var(--danger)}
+                    .btn-add-line{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border:1.5px dashed var(--border);border-radius:7px;background:transparent;color:var(--accent);font-size:.87rem;font-weight:600;cursor:pointer;margin-top:.75rem;transition:border-color .15s,background .15s}
+                    .btn-add-line:hover{border-color:var(--accent);background:rgba(26,86,219,.04)}
+                    .inv-totals{margin-top:1.5rem;display:flex;justify-content:flex-end}
+                    .inv-totals-box{min-width:260px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+                    .inv-totals-row{display:flex;justify-content:space-between;padding:.55rem 1rem;border-bottom:1px solid var(--border);font-size:.9rem}
+                    .inv-totals-row:last-child{border-bottom:none}
+                    .inv-totals-row.grand{font-weight:700;font-size:1rem;background:var(--surface-2)}
+                    .inv-actions{margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border);display:flex;gap:.75rem;justify-content:flex-end;flex-wrap:wrap}
+                    .btn-primary{padding:.6rem 1.6rem;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;transition:background .15s,transform .1s;display:inline-flex;align-items:center;gap:.4rem}
+                    .btn-primary:hover{background:var(--accent-h);transform:translateY(-1px)}
+                    .btn-secondary{padding:.6rem 1.4rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:.95rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;transition:background .15s}
+                    .btn-secondary:hover{background:var(--surface-2)}
+                    .inv-alert{padding:.8rem 1.1rem;border-radius:8px;font-size:.9rem;margin-bottom:1.25rem;display:flex;align-items:flex-start;gap:.65rem}
+                    .inv-alert.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+                    .inv-alert.success{background:#ecfdf5;border:1px solid #6ee7b7;color:#065f46}
+                </style>
+            </t>
+
+            <t t-set="o_portal_fullwidth_alert">
+                <t t-call="portal.portal_back_in_edit_mode"/>
+            </t>
+
+            <div class="inv-wrapper">
+
+                <t t-if="request.params.get('error')">
+                    <div class="inv-alert error">
+                        <span t-if="request.params.get('error') == 'missing_journal'">Debes seleccionar un diario de ventas.</span>
+                        <span t-elif="request.params.get('error') == 'missing_account'">Cada línea debe tener una cuenta contable.</span>
+                        <span t-elif="request.params.get('error') == 'no_lines'">Agrega al menos una línea a la factura.</span>
+                        <span t-elif="request.params.get('error') == 'invalid_partner'">El cliente seleccionado no es válido.</span>
+                        <span t-else="">Ocurrió un error al crear la factura. Inténtalo de nuevo.</span>
+                    </div>
+                </t>
+
+                <t t-if="request.params.get('success')">
+                    <div class="inv-alert success">
+                        &#10003; Factura <strong><t t-esc="request.params.get('success_name', '')"/></strong> creada y confirmada.
+                        &#160;
+                        <a t-attf-href="/web#action=account.action_move_out_invoice_type&amp;id=#{request.params.get('success')}"
+                           target="_blank" style="font-weight:700">Ver en Odoo →</a>
+                        &#160;·&#160;
+                        <a t-att-href="request.params.get('success_print_url')"
+                           target="_blank" style="font-weight:700">&#128438; Imprimir PDF →</a>
+                        &#160;·&#160;
+                        <a href="/my/invoices" style="font-weight:700">Ver mis facturas →</a>
+                    </div>
+                </t>
+
+                <div class="inv-card">
+                    <div class="inv-card-header">
+                        <div>
+                            <h2>Nueva Factura</h2>
+                            <p>Completa los datos para generar tu factura de venta</p>
+                        </div>
+                    </div>
+                    <div class="inv-card-body">
+                        <form id="invoiceForm" method="post" action="/my/invoices/create">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                            <!-- Cliente -->
+                            <div class="inv-section-title">Cliente</div>
+                            <div class="inv-grid">
+                                <div class="inv-field full">
+                                    <label for="partner_id">Selecciona el cliente <span class="req">*</span></label>
+                                    <select name="partner_id" id="partner_id" class="inv-select" required="required">
+                                        <option value="">— Selecciona un cliente —</option>
+                                        <t t-foreach="partners" t-as="p">
+                                            <option t-att-value="p.id" t-att-selected="p.id == partner.id">
+                                                <t t-esc="p.name"/><t t-if="p.vat"> · <t t-esc="p.vat"/></t>
+                                            </option>
+                                        </t>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Configuración -->
+                            <div class="inv-section-title">Configuración</div>
+                            <div class="inv-grid">
+                                <div class="inv-field">
+                                    <label for="journal_id">Diario de ventas <span class="req">*</span></label>
+                                    <select name="journal_id" id="journal_id" class="inv-select" required="required">
+                                        <option value="">— Selecciona un diario —</option>
+                                        <t t-foreach="journals" t-as="j">
+                                            <option t-att-value="j.id"><t t-esc="j.name"/></option>
+                                        </t>
+                                    </select>
+                                </div>
+                                <div class="inv-field">
+                                    <label for="currency_id">Moneda</label>
+                                    <select name="currency_id" id="currency_id" class="inv-select">
+                                        <t t-foreach="currencies" t-as="c">
+                                            <option t-att-value="c.id" t-att-selected="c.id == default_currency.id">
+                                                <t t-esc="c.name"/>
+                                            </option>
+                                        </t>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Líneas -->
+                            <div class="inv-section-title">Líneas de factura</div>
+                            <div class="inv-lines-wrap">
+                                <table class="inv-lines" id="linesTable">
+                                    <thead>
+                                        <tr>
+                                            <th class="col-prod">Producto</th>
+                                            <th class="col-desc">Descripción</th>
+                                            <th class="col-acct">Cuenta <span class="req">*</span></th>
+                                            <th class="col-qty">Cant.</th>
+                                            <th class="col-price">Precio unit.</th>
+                                            <th class="col-total">Total</th>
+                                            <th class="col-del"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="linesBody"></tbody>
+                                </table>
+                            </div>
+
+                            <button type="button" class="btn-add-line" id="btnAddLine">+ Agregar línea</button>
+
+                            <div class="inv-totals">
+                                <div class="inv-totals-box">
+                                    <div class="inv-totals-row"><span>Subtotal</span><span id="displaySubtotal">0.00</span></div>
+                                    <div class="inv-totals-row grand"><span>Total</span><span id="displayTotal">0.00</span></div>
+                                </div>
+                            </div>
+
+                            <div class="inv-actions">
+                                <a href="/my/invoices" class="btn-secondary">&#8592; Mis facturas</a>
+                                <button type="submit" class="btn-primary" id="btnSubmit">Generar y confirmar factura</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Datos JSON para el JS (procesados por QWeb antes del CDATA) -->
+            <script type="application/json" id="inv-accounts-data">
+                [<t t-foreach="accounts" t-as="a"><t t-if="not a_first">,</t>{"id":<t t-esc="a.id"/>,"name":"<t t-esc="(a.name or '').replace('&quot;', ' ').replace('\\', ' ')"/> (<t t-esc="a.code"/>)"}</t>]
+            </script>
+            <script type="application/json" id="inv-products-data">
+                [<t t-foreach="products" t-as="p"><t t-if="not p_first">,</t>{"id":<t t-esc="p.id"/>,"name":"<t t-esc="(p.name or '').replace('&quot;', ' ').replace('\\', ' ')"/>","price":<t t-esc="p.lst_price or 0"/>,"acct":<t t-esc="p.property_account_income_id.id or p.categ_id.property_account_income_categ_id.id or 0"/>}</t>]
+            </script>
+
+            <script>
+            (function () {
+                var ACCOUNTS = JSON.parse(document.getElementById('inv-accounts-data').textContent);
+                var PRODUCTS = JSON.parse(document.getElementById('inv-products-data').textContent);
+                var lineCount = 0;
+
+                function fmt(n) {
+                    return Number(n||0).toLocaleString('es-CO',{minimumFractionDigits:2,maximumFractionDigits:2});
+                }
+
+                function accountOptions(selId) {
+                    return ACCOUNTS.map(function(a){
+                        var s = (selId &amp;&amp; a.id===selId) ? ' selected="selected"' : '';
+                        return '&lt;option value="'+a.id+'"'+s+'&gt;'+a.name+'&lt;/option&gt;';
+                    }).join('');
+                }
+
+                function productOptions() {
+                    return PRODUCTS.map(function(p){
+                        return '&lt;option value="'+p.id+'"&gt;'+p.name+'&lt;/option&gt;';
+                    }).join('');
+                }
+
+                function addLine() {
+                    var idx = lineCount++;
+                    var tr = document.createElement('tr');
+                    tr.dataset.idx = idx;
+                    tr.innerHTML =
+                        '&lt;td class="col-prod"&gt;&lt;select class="inv-select line-product" name="line_product_'+idx+'"&gt;&lt;option value=""&gt;&#8212; Producto &#8212;&lt;/option&gt;'+productOptions()+'&lt;/select&gt;&lt;/td&gt;'+
+                        '&lt;td class="col-desc"&gt;&lt;input type="text" class="inv-input line-name" name="line_name_'+idx+'" placeholder="Descripci&#243;n"/&gt;&lt;/td&gt;'+
+                        '&lt;td class="col-acct"&gt;&lt;select class="inv-select line-account" name="line_account_'+idx+'" required="required"&gt;&lt;option value=""&gt;&#8212; Cuenta &#8212;&lt;/option&gt;'+accountOptions(0)+'&lt;/select&gt;&lt;/td&gt;'+
+                        '&lt;td class="col-qty"&gt;&lt;input type="number" class="inv-input line-qty" name="line_qty_'+idx+'" value="1" min="0.01" step="any"/&gt;&lt;/td&gt;'+
+                        '&lt;td class="col-price"&gt;&lt;input type="number" class="inv-input line-price" name="line_price_'+idx+'" value="0.00" min="0" step="any"/&gt;&lt;/td&gt;'+
+                        '&lt;td class="col-total"&gt;&lt;span class="line-total"&gt;0.00&lt;/span&gt;&lt;/td&gt;'+
+                        '&lt;td class="col-del"&gt;&lt;button type="button" class="btn-del-line" title="Eliminar"&gt;&amp;#10005;&lt;/button&gt;&lt;/td&gt;';
+                    document.getElementById('linesBody').appendChild(tr);
+                    wireRow(tr);
+                    recalc();
+                }
+
+                function wireRow(tr) {
+                    var product = tr.querySelector('.line-product');
+                    var name    = tr.querySelector('.line-name');
+                    var account = tr.querySelector('.line-account');
+                    var qty     = tr.querySelector('.line-qty');
+                    var price   = tr.querySelector('.line-price');
+
+                    product.addEventListener('change', function() {
+                        var prod = PRODUCTS.find(function(p){ return p.id === parseInt(product.value); });
+                        if (!prod) return;
+                        name.value  = prod.name;
+                        price.value = prod.price.toFixed(2);
+                        if (prod.acct) {
+                            var opt = account.querySelector('option[value="'+prod.acct+'"]');
+                            if (opt) account.value = prod.acct;
+                        }
+                        updateRowTotal(tr);
+                    });
+
+                    qty.addEventListener('input',   function(){ updateRowTotal(tr); });
+                    price.addEventListener('input', function(){ updateRowTotal(tr); });
+                    tr.querySelector('.btn-del-line').addEventListener('click', function(){ tr.remove(); recalc(); });
+                }
+
+                function updateRowTotal(tr) {
+                    var q = parseFloat(tr.querySelector('.line-qty').value)   || 0;
+                    var p = parseFloat(tr.querySelector('.line-price').value) || 0;
+                    tr.querySelector('.line-total').textContent = fmt(q*p);
+                    recalc();
+                }
+
+                function recalc() {
+                    var total = 0;
+                    document.querySelectorAll('#linesBody tr').forEach(function(tr){
+                        total += (parseFloat(tr.querySelector('.line-qty').value)||0) *
+                                 (parseFloat(tr.querySelector('.line-price').value)||0);
+                    });
+                    document.getElementById('displaySubtotal').textContent = fmt(total);
+                    document.getElementById('displayTotal').textContent    = fmt(total);
+                }
+
+                document.getElementById('invoiceForm').addEventListener('submit', function(e){
+                    if (!document.querySelectorAll('#linesBody tr').length) {
+                        e.preventDefault();
+                        alert('Agrega al menos una l\u00ednea antes de continuar.');
+                        return;
+                    }
+                    var btn = document.getElementById('btnSubmit');
+                    btn.disabled = true;
+                    btn.textContent = 'Generando…';
+                });
+
+                document.getElementById('btnAddLine').addEventListener('click', addLine);
+                addLine();
+            })();
+            </script>
+        </t>
+    </template>
+</odoo>
