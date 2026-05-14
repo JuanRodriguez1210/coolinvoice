@@ -1,0 +1,16 @@
+<odoo>
+    <record id="view_company_form_cool_invoice" model="ir.ui.view">
+        <field name="name">res.company.form.cool.invoice</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/notebook" position="inside">
+                <page string="Facturación">
+                    <group>
+                        <field name="cool_invoice_report_id" domain="[('model', '=', 'account.move')]"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

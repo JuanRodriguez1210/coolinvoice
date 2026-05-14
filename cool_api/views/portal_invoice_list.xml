@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="portal_invoice_list" name="Portal Invoice List">
+
+        <t t-call="portal.portal_layout">
+
+            <div class="container mt-4">
+
+                <h2>Mis Facturas</h2>
+
+                <a href="/my/invoices/create"
+                   class="btn btn-primary mb-3">
+                    Crear Factura
+                </a>
+
+                <table class="table table-bordered">
+
+                    <thead>
+                        <tr>
+                            <th>Factura</th>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>PDF</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <t t-foreach="invoices" t-as="inv">
+
+                            <tr>
+
+                                <td>
+                                    <t t-esc="inv.name"/>
+                                </td>
+
+                                <td>
+                                    <t t-esc="inv.partner_id.name"/>
+                                </td>
+
+                                <td>
+                                    <t t-esc="inv.invoice_date"/>
+                                </td>
+
+                                <td>
+                                    <t t-esc="inv.amount_total"/>
+                                </td>
+
+                                <td>
+                                    <t t-esc="inv.state"/>
+                                </td>
+
+                                <td>
+                                    <a t-att-href="invoice_print_urls.get(inv.id)"
+                                       target="_blank"
+                                       class="btn btn-sm btn-secondary">
+                                        PDF
+                                    </a>
+                                </td>
+
+                            </tr>
+
+                        </t>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </t>
+
+    </template>
+
+</odoo>
