@@ -1,69 +1,36 @@
 /** @odoo-module **/
 
 import publicWidget from "@web/legacy/js/public/public_widget";
-
 publicWidget.registry.PortalInvoiceForm = publicWidget.Widget.extend({
-
     selector: '.inv-wrapper',
-
     start: function () {
-
         const body = document.getElementById('linesBody');
-
         if (!body) {
             return this._super(...arguments);
         }
-
         const btn = document.getElementById('btnAddLine');
-
         const subtotalEl = document.getElementById('displaySubtotal');
         const totalEl = document.getElementById('displayTotal');
-
         const productsEl = document.getElementById('inv-products-data');
         const accountsEl = document.getElementById('inv-accounts-data');
-
-        const products = JSON.parse(
-            productsEl?.textContent || '[]'
-        );
-
-        const accounts = JSON.parse(
-            accountsEl?.textContent || '[]'
-        );
-
+        const products = JSON.parse(productsEl?.textContent || '[]');
+        const accounts = JSON.parse(accountsEl?.textContent || '[]');
         let lineCount = 0;
-
         function recalculateTotals() {
-
             let total = 0;
-
             body.querySelectorAll('tr').forEach(function (row) {
-
-                const qty = parseFloat(
-                    row.querySelector('.line-qty')?.value || 0
-                );
-
-                const price = parseFloat(
-                    row.querySelector('.line-price')?.value || 0
-                );
-
+                const qty = parseFloat(row.querySelector('.line-qty')?.value || 0);
+                const price = parseFloat(row.querySelector('.line-price')?.value || 0);
                 const lineTotal = qty * price;
-
-                row.querySelector('.line-total').textContent =
-                    lineTotal.toFixed(2);
-
+                row.querySelector('.line-total').textContent = lineTotal.toFixed(2);
                 total += lineTotal;
             });
-
             subtotalEl.textContent = total.toFixed(2);
             totalEl.textContent = total.toFixed(2);
         }
-
         function buildProductOptions() {
-
             let html = '<option value="">— Producto —</option>';
-
             products.forEach(function (p) {
-
                 html += `
                     <option value="${p.id}"
                             data-price="${p.price}"
@@ -72,32 +39,22 @@ publicWidget.registry.PortalInvoiceForm = publicWidget.Widget.extend({
                     </option>
                 `;
             });
-
             return html;
         }
-
         function buildAccountOptions() {
-
             let html = '<option value="">— Cuenta —</option>';
-
             accounts.forEach(function (a) {
-
                 html += `
                     <option value="${a.id}">
                         ${a.name}
                     </option>
                 `;
             });
-
             return html;
         }
-
         function addLine() {
-
             const idx = lineCount++;
-
             const tr = document.createElement('tr');
-
             tr.innerHTML = `
                 <td>
                     <select name="line_product_${idx}"

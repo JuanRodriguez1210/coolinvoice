@@ -1,183 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
-    <template id="portal_create_invoice"
-              name="Crear Factura">
-
+    <template id="portal_create_invoice" name="Crear Factura">
         <t t-call="portal.portal_layout">
-
             <div class="inv-wrapper">
-
-                <!-- HEADER BRAND -->
                 <div class="inv-brand-header">
-
                     <div class="brand-left">
-
-                        <img t-if="company.logo"
-                             t-att-src="'data:image/png;base64,%s' % company.logo.decode()"
-                             class="brand-logo"/>
-
+                        <img t-if="company.logo" t-att-src="'data:image/png;base64,%s' % company.logo.decode()" class="brand-logo"/>
                         <div class="brand-info">
-
                             <h1>
                                 <t t-out="company.name"/>
                             </h1>
-
-                            <p>
-                                Portal de Facturación
-                            </p>
-
+                            <p>Portal de Facturación</p>
                         </div>
-
                     </div>
-
-                    <div class="brand-badge">
-                        Cliente Portal
-                    </div>
-
+                    <div class="brand-badge">Cliente Portal</div>
                 </div>
-
-                <!-- ALERTAS -->
                 <t t-call="cool_api.portal_invoice_alerts"/>
-
-                <!-- CARD -->
                 <div class="inv-card">
-
                     <div class="inv-card-body">
-
-                        <form id="invoiceForm"
-                              method="post"
-                              action="/my/invoices/create">
-
-                            <!-- CSRF -->
-                            <input type="hidden"
-                                   name="csrf_token"
-                                   t-att-value="request.csrf_token()"/>
-
-                            <!-- ================================================= -->
-                            <!-- CLIENTE -->
-                            <!-- ================================================= -->
-
+                        <form id="invoiceForm" method="post" action="/my/invoices/create">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                             <t t-call="cool_api.portal_invoice_customer_section"/>
-
-                            <!-- ================================================= -->
-                            <!-- CONFIG -->
-                            <!-- ================================================= -->
-
-                            <div class="inv-section-title">
-                                Configuración
-                            </div>
-
+                            <div class="inv-section-title">Configuración</div>
                             <div class="inv-grid">
-
-                                <!-- DIARIO -->
                                 <div class="inv-field">
-
-                                    <label for="journal_id">
-                                        Diario de ventas
-                                    </label>
-
-                                    <select name="journal_id"
-                                            id="journal_id"
-                                            class="inv-select"
-                                            required="required">
-
+                                    <label for="journal_id">Diario de ventas</label>
+                                    <select name="journal_id" id="journal_id" class="inv-select" required="required">
                                         <option value="">
                                             — Selecciona —
                                         </option>
-
-                                        <t t-foreach="journals"
-                                           t-as="j">
-
-                                            <option t-att-value="j.id">
-
-                                                <t t-out="j.name"/>
-
-                                            </option>
-
+                                        <t t-foreach="journals" t-as="j">
+                                            <option t-att-value="j.id"><t t-out="j.name"/></option>
                                         </t>
-
                                     </select>
-
                                 </div>
-
-                                <!-- MONEDA -->
                                 <div class="inv-field">
-
-                                    <label for="currency_id">
-                                        Moneda
-                                    </label>
-
-                                    <select name="currency_id"
-                                            id="currency_id"
-                                            class="inv-select">
-
-                                        <t t-foreach="currencies"
-                                           t-as="c">
-
-                                            <option t-att-value="c.id"
-                                                    t-att-selected="c.id == default_currency.id">
-
-                                                <t t-out="c.name"/>
-
-                                            </option>
-
+                                    <label for="currency_id">Moneda</label>
+                                    <select name="currency_id" id="currency_id" class="inv-select">
+                                        <t t-foreach="currencies" t-as="c">
+                                            <option t-att-value="c.id" t-att-selected="c.id == default_currency.id"><t t-out="c.name"/></option>
                                         </t>
-
                                     </select>
-
                                 </div>
-
                             </div>
-
-                            <!-- ================================================= -->
-                            <!-- LINEAS -->
-                            <!-- ================================================= -->
-
                             <t t-call="cool_api.portal_invoice_lines_section"/>
-
-                            <!-- ================================================= -->
-                            <!-- TOTALES -->
-                            <!-- ================================================= -->
-
                             <t t-call="cool_api.portal_invoice_totals_section"/>
-
-                            <!-- ================================================= -->
-                            <!-- ACTIONS -->
-                            <!-- ================================================= -->
-
                             <div class="inv-actions">
-
-                                <a href="/my/invoices"
-                                   class="btn-secondary">
-
+                                <a href="/my/invoices" class="btn-secondary">
                                     ← Mis facturas
-
                                 </a>
-
-                                <button type="submit"
-                                        class="btn-primary"
-                                        id="btnSubmit">
-
+                                <button type="submit" class="btn-primary" id="btnSubmit">
                                     Generar y confirmar factura
-
                                 </button>
-
                             </div>
-
                         </form>
-
                     </div>
-
                 </div>
-
             </div>
-
-            <!-- JSON -->
             <t t-call="cool_api.portal_invoice_json_data"/>
-
         </t>
-
     </template>
-
 </odoo>

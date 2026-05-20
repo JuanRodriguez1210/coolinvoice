@@ -1,30 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
-    <!-- ALERTAS -->
     <template id="portal_invoice_alerts">
         <t t-if="request.params.get('error')">
-            <div class="inv-alert error">
-                Ocurrió un error.
-            </div>
+            <div class="inv-alert error">Ocurrió un error.</div>
         </t>
     </template>
-    <!-- CLIENTE -->
     <template id="portal_invoice_customer_section">
-        <div class="inv-section-title">
-            Cliente
-        </div>
+        <div class="inv-section-title">Cliente</div>
         <div class="inv-grid">
             <div class="inv-field full">
-                <label for="partner_id">
-                    Selecciona el cliente
-                </label>
-                <select name="partner_id"
-                        id="partner_id"
-                        class="inv-select">
-                    <option value="">
-                        — Selecciona —
-                    </option>
+                <label for="partner_id">Selecciona el cliente</label>
+                <select name="partner_id" id="partner_id" class="inv-select">
+                    <option value="">— Selecciona —</option>
                     <t t-foreach="partners" t-as="p">
                         <option t-att-value="p.id">
                             <t t-esc="p.name"/>
@@ -34,20 +21,13 @@
             </div>
         </div>
     </template>
-    <!-- CONFIG -->
     <template id="portal_invoice_config_section">
-        <div class="inv-section-title">
-            Configuración
-        </div>
+        <div class="inv-section-title">Configuración</div>
     </template>
-    <!-- LINEAS -->
     <template id="portal_invoice_lines_section">
-        <div class="inv-section-title">
-            Líneas de factura
-        </div>
+        <div class="inv-section-title">Líneas de factura</div>
         <div class="inv-lines-wrap">
-            <table class="inv-lines"
-                   id="linesTable">
+            <table class="inv-lines" id="linesTable">
                 <thead>
                     <tr>
                         <th>Producto</th>
@@ -61,49 +41,24 @@
                 <tbody id="linesBody"></tbody>
             </table>
         </div>
-        <button type="button"
-                class="btn-add-line"
-                id="btnAddLine">
-            + Agregar línea
-        </button>
+        <button type="button" class="btn-add-line" id="btnAddLine">+ Agregar línea</button>
     </template>
-    <!-- TOTALES -->
     <template id="portal_invoice_totals_section">
-
         <div class="inv-totals">
             <div class="inv-totals-box">
-
                 <div class="inv-totals-row">
                     <span>Subtotal</span>
-                    <span id="displaySubtotal">
-                        0.00
-                    </span>
+                    <span id="displaySubtotal">0.00</span>
                 </div>
-
                 <div class="inv-totals-row grand">
                     <span>Total</span>
-                    <span id="displayTotal">
-                        0.00
-                    </span>
+                    <span id="displayTotal">0.00</span>
                 </div>
-
             </div>
         </div>
-
     </template>
-
-    <!-- JSON -->
     <template id="portal_invoice_json_data">
-
-        <script type="application/json"
-                id="inv-accounts-data">
-            <t t-out="accounts_json"/>
-        </script>
-
-        <script type="application/json"
-                id="inv-products-data">
-            <t t-out="products_json"/>
-        </script>
-
+        <script type="application/json" id="inv-accounts-data"><t t-out="accounts_json"/></script>
+        <script type="application/json" id="inv-products-data"><t t-out="products_json"/></script>
     </template>
 </odoo>

@@ -5,69 +5,32 @@ from markupsafe import Markup
 
 from odoo import http
 from odoo.http import request
-from odoo.addons.portal.controllers.portal import (
-    CustomerPortal,
-    pager as portal_pager,
-)
+from odoo.addons.portal.controllers.portal import (CustomerPortal, pager as portal_pager,)
 
 _logger = logging.getLogger(__name__)
-
 INVOICES_PER_PAGE = 10
-
-
 class InvoicePortalController(CustomerPortal):
-
-    # =========================================================
-    # HOME PORTAL
-    # =========================================================
-
     def _prepare_home_portal_values(self, counters):
-
+        """Agrega el conteo de facturas al portal home."""
         values = super()._prepare_home_portal_values(counters)
-
         if 'invoice_count' in counters:
-
-            values['invoice_count'] = request.env[
-                'account.move'
-            ].sudo().search_count([
-                ('portal_user_id', '=', request.env.user.id),
-                ('move_type', '=', 'out_invoice'),
-            ])
-
+            values['invoice_count'] = request.env['account.move'].sudo().search_count([('portal_user_id', '=', request.env.user.id),
+                                                                                       ('move_type', '=', 'out_invoice'),])
         return values
-
-    # =========================================================
-    # FORM VALUES
-    # =========================================================
-
     def _get_portal_invoice_form_values(self):
-
+        """Obtiene los valores necesarios para el formulario de creación de factura en el portal."""
         company = request.env.company
-
-        journals = request.env['account.journal'].sudo().search([
-            ('type', '=', 'sale'),
-            ('company_id', '=', company.id),
-        ])
-
-        currencies = request.env['res.currency'].sudo().search([
-            ('active', '=', True)
-        ])
-
-        accounts = request.env['account.account'].sudo().search([
-            ('company_ids', 'in', company.id),
-            ('account_type', 'in', ['income', 'income_other']),
-            ('deprecated', '=', False),
-        ])
-
-        products = request.env['product.product'].sudo().search([
-            ('sale_ok', '=', True),
-            ('active', '=', True),
-        ], order='name asc')
-
-        partners = request.env['res.partner'].sudo().search([
-            ('active', '=', True),
-        ], order='name asc', limit=300)
-
+        journals = request.env['account.journal'].sudo().search([('type', '=', 'sale'),
+                                                                 ('company_id', '=', company.id),])
+        currencies = request.env['res.currency'].sudo().search([('active', '=', True)])
+        accounts = request.env['account.account'].sudo().search([('company_ids', 'in', [company.id]),
+                                                                 ('account_type', 'in', ['income', 'income_other']),
+                                                                 ('deprecated', '=', False),])
+        products = request.env['product.product'].sudo().search([('sale_ok', '=', True),
+                                                                 ('active', '=', True),
+                                                                 ], order='name asc')
+        partners = request.env['res.partner'].sudo().search([('active', '=', True),],
+                                                            order='name asc', limit=300)
         accounts_json = json.dumps([
             {
                 'id': account.id,
@@ -75,7 +38,6 @@ class InvoicePortalController(CustomerPortal):
             }
             for account in accounts
         ])
-
         products_json = json.dumps([
             {
                 'id': product.id,
@@ -89,161 +51,58 @@ class InvoicePortalController(CustomerPortal):
             }
             for product in products
         ])
-
         return {
-
-            # =================================================
-            # NORMAL VALUES
-            # =================================================
-
             'partner': request.env.user.partner_id,
-
             'company': company,
-
             'journals': journals,
-
             'currencies': currencies,
-
             'accounts': accounts,
-
             'products': products,
-
             'partners': partners,
-
             'default_currency': company.currency_id,
-
             'page_name': 'create_invoice',
-
-            # =================================================
-            # JSON SERIALIZED
-            # =================================================
-
             'accounts_json': Markup(accounts_json),
-
             'products_json': Markup(products_json),
         }
-
-    # =========================================================
-    # GET COMPANY REPORT
-    # =========================================================
-
     def _get_invoice_report(self, invoice):
-
+        """Determina qué reporte usar para imprimir la factura."""
         company = invoice.company_id
-
-        # =====================================================
-        # CUSTOM REPORT BY COMPANY
-        # =====================================================
-
         if company.cool_invoice_report_id:
-
             return company.cool_invoice_report_id
-
-        # =====================================================
-        # FALLBACK ODOO REPORT
-        # =====================================================
-
         return request.env.ref('account.account_invoices')
-
-    # =========================================================
-    # BUILD PDF URL
-    # =========================================================
-
     def _build_invoice_print_url(self, invoice):
-
+        """Construye la URL para imprimir la factura en el portal."""
         return f'/my/invoices/{invoice.id}/print'
-
-    # =========================================================
-    # PRINT INVOICE
-    # =========================================================
-
-    @http.route(
-        '/my/invoices/<int:invoice_id>/print',
-        type='http',
-        auth='user',
-        website=True
-    )
+    @http.route('/my/invoices/<int:invoice_id>/print', type='http', auth='user', website=True)
     def portal_print_invoice(self, invoice_id, **kwargs):
-
-        invoice = request.env[
-            'account.move'
-        ].sudo().browse(invoice_id)
-
+        """Permite a los usuarios de portal imprimir sus facturas en PDF."""
+        invoice = request.env['account.move'].sudo().browse(invoice_id)
         if not invoice.exists():
-
             return request.not_found()
-
-        # =====================================================
-        # SECURITY
-        # =====================================================
-
         if invoice.portal_user_id.id != request.env.user.id:
-
             return request.not_found()
-
         report = self._get_invoice_report(invoice)
-
-        pdf_content, _ = request.env[
-            'ir.actions.report'
-        ].sudo()._render_qweb_pdf(
-            report.report_name,
-            invoice.id
-        )
-
-        pdfhttpheaders = [
-            ('Content-Type', 'application/pdf'),
-            (
-                'Content-Length',
-                len(pdf_content)
-            ),
-        ]
-
-        return request.make_response(
-            pdf_content,
-            headers=pdfhttpheaders
-        )
-
-    # =========================================================
-    # INVOICE LIST
-    # =========================================================
-
-    @http.route(
-        '/my/invoices',
-        type='http',
-        auth='user',
-        website=True,
-        methods=['GET']
-    )
+        pdf_content, _ = report.sudo()._render_qweb_pdf([invoice.id])
+        pdfhttpheaders = [('Content-Type', 'application/pdf'),
+                          ('Content-Length', str(len(pdf_content))),
+                          ('Content-Disposition', f'inline; filename="{invoice.name}.pdf"'),]
+        return request.make_response(pdf_content, headers=pdfhttpheaders)
+    @http.route('/my/invoices', type='http', auth='user', website=True, methods=['GET'])
     def portal_invoice_list(self, page=1, **kwargs):
-
-        domain = [
-            ('portal_user_id', '=', request.env.user.id),
-            ('move_type', '=', 'out_invoice'),
-        ]
-
+        """Muestra la lista de facturas creadas por el usuario de portal."""
+        domain = [('portal_user_id', '=', request.env.user.id),
+                  ('move_type', '=', 'out_invoice'),]
         total = request.env['account.move'].sudo().search_count(domain)
-
-        pager = portal_pager(
-            url='/my/invoices',
-            total=total,
-            page=int(page),
-            step=INVOICES_PER_PAGE,
-        )
-
-        invoices = request.env['account.move'].sudo().search(
-            domain,
-            order='invoice_date desc, id desc',
-            limit=INVOICES_PER_PAGE,
-            offset=pager['offset'],
-        )
-
+        pager = portal_pager(url='/my/invoices', total=total, page=int(page), step=INVOICES_PER_PAGE,)
+        invoices = request.env['account.move'].sudo().search(domain,
+                                                             order='invoice_date desc, id desc',
+                                                             limit=INVOICES_PER_PAGE,
+                                                             offset=pager['offset'],)
         invoice_print_urls = {
             inv.id: self._build_invoice_print_url(inv)
             for inv in invoices
         }
-
-        return request.render(
-            'cool_api.portal_invoice_list',
+        return request.render('cool_api.portal_invoice_list',
             {
                 'invoices': invoices,
                 'invoice_print_urls': invoice_print_urls,
@@ -251,229 +110,80 @@ class InvoicePortalController(CustomerPortal):
                 'page_name': 'my_invoices',
             }
         )
-
-    # =========================================================
-    # GET FORM
-    # =========================================================
-
-    @http.route(
-        '/my/invoices/create',
-        type='http',
-        auth='user',
-        website=True,
-        methods=['GET']
-    )
+    @http.route('/my/invoices/create', type='http', auth='user', website=True, methods=['GET'])
     def portal_invoice_create_form(self, **kwargs):
-
+        """Muestra el formulario para que los usuarios de portal puedan crear nuevas facturas."""
         values = self._get_portal_invoice_form_values()
-
         values.update({
-
             'error': kwargs.get('error'),
-
             'success': kwargs.get('success'),
-
             'success_name': kwargs.get(
                 'success_name',
                 ''
             ),
-
             'success_print_url': kwargs.get(
                 'success_print_url',
                 ''
             ),
         })
-
-        return request.render(
-            'cool_api.portal_create_invoice',
-            values
-        )
-
-    # =========================================================
-    # POST CREATE
-    # =========================================================
-
-    @http.route(
-        '/my/invoices/create',
-        type='http',
-        auth='user',
-        website=True,
-        methods=['POST'],
-        csrf=True
-    )
+        return request.render('cool_api.portal_create_invoice', values)
+    @http.route('/my/invoices/create', type='http', auth='user', website=True, methods=['POST'], csrf=True)
     def portal_invoice_create_submit(self, **kw):
-
+        """Procesa el formulario de creación de factura enviado por el usuario de portal."""
         company = request.env.company
-
         current_user = request.env.user
-
-        # =====================================================
-        # PARTNER
-        # =====================================================
-
         partner_id_raw = kw.get('partner_id')
-
         if partner_id_raw:
-
-            partner = request.env[
-                'res.partner'
-            ].sudo().browse(int(partner_id_raw))
-
+            partner = request.env['res.partner'].sudo().browse(int(partner_id_raw))
             if not partner.exists():
-
-                return request.redirect(
-                    '/my/invoices/create?error=invalid_partner'
-                )
-
+                return request.redirect('/my/invoices/create?error=invalid_partner')
         else:
-
             partner = current_user.partner_id
-
-        # =====================================================
-        # MAIN DATA
-        # =====================================================
-
         journal_id = kw.get('journal_id')
-
         currency_id = kw.get('currency_id')
-
         if not journal_id:
-
-            return request.redirect(
-                '/my/invoices/create?error=missing_journal'
-            )
-
-        # =====================================================
-        # LINES
-        # =====================================================
-
+            return request.redirect('/my/invoices/create?error=missing_journal')
         invoice_lines = []
-
         idx = 0
-
         while f'line_account_{idx}' in kw:
-
             account_id = kw.get(f'line_account_{idx}')
-
-            name = kw.get(
-                f'line_name_{idx}',
-                'Línea de factura'
-            )
-
-            qty = float(
-                kw.get(f'line_qty_{idx}') or 1
-            )
-
-            price = float(
-                kw.get(f'line_price_{idx}') or 0.0
-            )
-
+            name = kw.get(f'line_name_{idx}', 'Línea de factura')
+            qty = float(kw.get(f'line_qty_{idx}') or 1)
+            price = float(kw.get(f'line_price_{idx}') or 0.0)
             product_id = kw.get(f'line_product_{idx}')
-
             if not account_id:
-
-                return request.redirect(
-                    '/my/invoices/create?error=missing_account'
-                )
-
+                return request.redirect('/my/invoices/create?error=missing_account')
             line_vals = {
-
                 'name': name,
-
                 'quantity': qty,
-
                 'price_unit': price,
-
                 'account_id': int(account_id),
             }
-
             if product_id:
-
                 line_vals['product_id'] = int(product_id)
-
             invoice_lines.append((0, 0, line_vals))
-
             idx += 1
-
         if not invoice_lines:
-
-            return request.redirect(
-                '/my/invoices/create?error=no_lines'
-            )
-
-        # =====================================================
-        # CURRENCY
-        # =====================================================
-
+            return request.redirect('/my/invoices/create?error=no_lines')
         currency = None
-
         if currency_id:
-
-            currency = request.env[
-                'res.currency'
-            ].sudo().browse(int(currency_id))
-
-        if not currency or not currency.exists():
-
-            currency = company.currency_id
-
-        # =====================================================
-        # CREATE
-        # =====================================================
-
+            currency = request.env['res.currency'].sudo().browse(int(currency_id))
+        if not currency or not currency.exists():currency = company.currency_id
         try:
-
-            invoice = request.env[
-                'account.move'
-            ].sudo().create({
-
-                'move_type': 'out_invoice',
-
-                'partner_id': partner.id,
-
-                'company_id': company.id,
-
-                'journal_id': int(journal_id),
-
-                'currency_id': currency.id,
-
-                'invoice_line_ids': invoice_lines,
-
-                'portal_user_id': current_user.id,
-            })
-
-            # ================================================
-            # POST INVOICE
-            # ================================================
-
+            invoice = request.env['account.move'].sudo().create({'move_type': 'out_invoice',
+                                                                 'partner_id': partner.id,
+                                                                 'company_id': company.id,
+                                                                 'journal_id': int(journal_id),
+                                                                 'currency_id': currency.id,
+                                                                 'invoice_line_ids': invoice_lines,
+                                                                 'portal_user_id': current_user.id,})
             invoice.action_post()
-
-            _logger.info(
-                "Portal invoice posted: %s (id=%s) by portal user %s",
-                invoice.name,
-                invoice.id,
-                current_user.login,
-            )
-
+            _logger.info("Portal invoice posted: %s (id=%s) by portal user %s", invoice.name, invoice.id, current_user.login,)
         except Exception as exc:
-
-            _logger.exception(
-                "Error creating portal invoice: %s",
-                exc
-            )
-
-            return request.redirect(
-                '/my/invoices/create?error=server_error'
-            )
-
-        # =====================================================
-        # SUCCESS
-        # =====================================================
-
+            _logger.exception("Error creating portal invoice: %s", exc)
+            return request.redirect('/my/invoices/create?error=server_error')
         print_url = self._build_invoice_print_url(invoice)
-
         return request.redirect(
-
             f'/my/invoices/create'
             f'?success={invoice.id}'
             f'&success_name={invoice.name}'

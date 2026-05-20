@@ -2,64 +2,43 @@
     --brand-primary:#006eff;
     --brand-secondary:#f4c430;
     --brand-dark:#2d1b12;
-
     --surface:#fff;
     --surface-2:#fff8f3;
-
     --border:#f1dfd4;
-
     --radius:14px;
-
     --shadow:0 4px 18px rgba(0,0,0,.08);
 }
-
 .inv-wrapper{
     max-width:1200px;
     margin:2rem auto;
     padding:0 1rem;
 }
-
-/* =========================================================
-   HEADER
-========================================================= */
-
 .inv-brand-header{
     display:flex;
     justify-content:space-between;
     align-items:center;
-
     padding:1.5rem 2rem;
-
     background:
         linear-gradient(
             135deg,
             #fff8f3 0%,
             #fff 100%
         );
-
     border-bottom:4px solid var(--brand-primary);
-
     border-radius:18px 18px 0 0;
 }
-
 .brand-left{
     display:flex;
     align-items:center;
     gap:1rem;
 }
-
 .brand-logo{
     width:90px;
     height:90px;
-
     object-fit:contain;
-
     background:#fff;
-
     border-radius:14px;
-
     padding:.4rem;
-
     box-shadow:var(--shadow);
 }
 
@@ -78,39 +57,22 @@
 
 .brand-badge{
     background:var(--brand-primary);
-
     color:#fff;
-
     padding:.7rem 1.4rem;
-
     border-radius:999px;
-
     font-weight:700;
-
     font-size:1rem;
 }
 
-/* =========================================================
-   CARD
-========================================================= */
-
 .inv-card{
     background:var(--surface);
-
     border-radius:0 0 18px 18px;
-
     box-shadow:var(--shadow);
-
     overflow:hidden;
 }
-
 .inv-card-body{
     padding:2rem;
 }
-
-/* =========================================================
-   TITLES
-========================================================= */
 
 .inv-section-title{
     font-size:1.3rem;
@@ -121,101 +83,64 @@
     margin-bottom:1rem;
 }
 
-/* =========================================================
-   GRID
-========================================================= */
-
 .inv-grid{
     display:grid;
     grid-template-columns:repeat(2,minmax(0,1fr));
     gap:1rem;
 }
-
 .inv-field{
     display:flex;
     flex-direction:column;
 }
-
 .inv-field.full{
     grid-column:1 / -1;
 }
-
 .inv-field label{
     margin-bottom:.4rem;
     font-weight:600;
     color:#444;
 }
 
-/* =========================================================
-   INPUTS
-========================================================= */
-
 .inv-select,
 .inv-input{
     width:100%;
-
     padding:.85rem 1rem;
-
     border:1px solid var(--border);
-
     border-radius:12px;
-
     background:#fff;
-
     font-size:1rem;
-
     transition:.2s ease;
 }
-
 .inv-select:focus,
 .inv-input:focus{
     outline:none;
-
     border-color:var(--brand-primary);
-
     box-shadow:0 0 0 3px rgba(239,27,18,.12);
 }
-
-/* =========================================================
-   TABLE
-========================================================= */
 
 .inv-lines-wrap{
     overflow-x:auto;
 }
-
 .inv-lines{
     width:100%;
     border-collapse:collapse;
-
     background:#fff;
 }
-
 .inv-lines thead{
     background:#fff8f3;
 }
-
 .inv-lines th{
     text-align:left;
-
     padding:1rem;
-
     color:var(--brand-dark);
-
     font-weight:700;
-
     border-bottom:1px solid var(--border);
 }
 
 .inv-lines td{
     padding:1rem;
-
     border-bottom:1px solid #f3f3f3;
 }
-
-/* =========================================================
-   BUTTONS
-========================================================= */
 
 .btn-primary{
     background:
@@ -226,23 +151,15 @@
         );
 
     color:#fff;
-
     border:none;
-
     padding:.95rem 1.4rem;
-
     border-radius:12px;
-
     font-weight:700;
-
     cursor:pointer;
-
     text-decoration:none;
-
     display:inline-flex;
     align-items:center;
     justify-content:center;
-
     transition:.2s ease;
 }
 
@@ -252,19 +169,12 @@
 
 .btn-secondary{
     background:#f5f5f5;
-
     color:#333;
-
     border:none;
-
     padding:.95rem 1.4rem;
-
     border-radius:12px;
-
     font-weight:600;
-
     text-decoration:none;
-
     display:inline-flex;
     align-items:center;
     justify-content:center;
@@ -272,92 +182,57 @@
 
 .btn-add-line{
     margin-top:1rem;
-
     background:#fff;
-
     border:1px solid var(--brand-primary);
-
     color:var(--brand-primary);
-
     padding:.8rem 1.2rem;
-
     border-radius:12px;
-
     font-weight:700;
-
     cursor:pointer;
 }
-
-/* =========================================================
-   TOTALS
-========================================================= */
 
 .inv-totals{
     display:flex;
     justify-content:flex-end;
-
     margin-top:2rem;
 }
-
 .inv-totals-box{
     width:320px;
-
     background:#fff8f3;
-
     border:1px solid var(--border);
-
     border-radius:14px;
-
     padding:1rem 1.4rem;
 }
 
 .inv-totals-row{
     display:flex;
     justify-content:space-between;
-
     padding:.5rem 0;
-
     color:#444;
 }
 
 .inv-totals-row.grand{
     margin-top:.5rem;
     padding-top:1rem;
-
     border-top:1px solid var(--border);
-
     font-size:1.2rem;
     font-weight:800;
-
     color:var(--brand-dark);
 }
-
-/* =========================================================
-   ACTIONS
-========================================================= */
 
 .inv-actions{
     display:flex;
     justify-content:space-between;
     align-items:center;
-
     margin-top:2rem;
-
     gap:1rem;
 }
 
-/* =========================================================
-   ALERTS
-========================================================= */
-
 .inv-alert{
     padding:1rem 1.2rem;
-
     border-radius:12px;
-
     margin-top:1.5rem;
     margin-bottom:1rem;
-
     font-weight:600;
 }
 
@@ -365,10 +240,6 @@
     background:#ffe9e7;
     color:#006eff;
 }
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
 
 @media (max-width:768px){
 

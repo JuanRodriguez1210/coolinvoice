@@ -1,191 +1,158 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
     <template id="report_invoice_dian_document">
-
         <t t-call="web.html_container">
-
+            <t t-call-assets="web.report_assets_common"/>
             <t t-foreach="docs" t-as="o">
-
                 <t t-call="web.external_layout">
-
-                    <div class="page">
-
-                        <!-- HEADER -->
-                        <div class="row mb-4">
-
-                            <div class="col-6">
-
-                                <img t-if="o.company_id.logo"
-                                     t-att-src="image_data_uri(o.company_id.logo)"
-                                     style="max-height:90px;"/>
-
+                    <div class="page" style="font-family: Arial, Helvetica, sans-serif; color:#3b2b23; font-size:13px; padding:10px 20px;">
+                        <div style="width:100%; overflow:hidden; margin-bottom:40px;">
+                            <div style="width:45%; float:left;">
+                                <img t-if="o.company_id.logo" t-att-src="image_data_uri(o.company_id.logo)" style="max-height:100px; max-width:280px;"/>
                             </div>
-
-                            <div class="col-6 text-end">
-
-                                <h2>
-                                    FACTURA ELECTRÓNICA
-                                </h2>
-
-                                <strong>
-                                    <span t-out="o.name"/>
-                                </strong>
-
-                                <br/>
-
-                                <span t-out="o.company_id.name"/>
-
-                                <br/>
-
-                                <strong>NIT:</strong>
-                                <span t-out="o.company_id.partner_id.vat or ''"/>
-
+                            <div style="width:50%; float:right; text-align:right; color:#7b2d26; line-height:24px; font-size:14px;">
+                                <div style="font-size:28px; font-weight:bold; margin-bottom:12px; color:#7b2d26;">FACTURA ELECTRÓNICA</div>
+                                <div>
+                                    <strong>Número:</strong><span t-out="o.name"/>
+                                </div>
+                                <div>
+                                    <strong>Fecha:</strong><span t-field="o.invoice_date"/>
+                                </div>
+                                <div>
+                                    <strong>Empresa:</strong><span t-out="o.company_id.name"/>
+                                </div>
+                                <div>
+                                    <strong>NIT:</strong>
+                                    <span t-out="o.company_id.partner_id.vat or ''"/>
+                                </div>
+                                <div t-if="o.company_id.partner_id.phone">
+                                    <span t-out="o.company_id.partner_id.phone"/>
+                                </div>
+                                <div t-if="o.company_id.partner_id.email">
+                                    <span t-out="o.company_id.partner_id.email"/>
+                                </div>
                             </div>
-
                         </div>
-
-                        <!-- CLIENTE -->
-                        <div class="mb-3">
-
-                            <strong>Cliente:</strong>
-                            <span t-out="o.partner_id.name or ''"/>
-
-                            <br/>
-
-                            <strong>NIT / CC:</strong>
-                            <span t-out="o.partner_id.vat or ''"/>
-
+                        <div style="clear:both;"></div>
+                        <div style="background:#f4d9a1; padding:14px 18px; font-size:18px; font-weight:bold; color:#5a1f17; margin-bottom:0;">FACTURADO A</div>
+                        <div style="border:1px solid #d6c2a3; padding:20px; margin-bottom:35px; line-height:28px;">
+                            <div style="width:48%; float:left;">
+                                <div>
+                                    <strong>CLIENTE:</strong><span t-out="o.partner_id.name or ''"/>
+                                </div>
+                                <div>
+                                    <strong>NIT / CC:</strong><span t-out="o.partner_id.vat or ''"/>
+                                </div>
+                            </div>
+                            <div style="width:48%; float:right;">
+                                <div t-if="o.partner_id.street">
+                                    <strong>DIRECCIÓN:</strong><span t-out="o.partner_id.street"/>
+                                </div>
+                                <div t-if="o.partner_id.phone">
+                                    <strong>TEL:</strong><span t-out="o.partner_id.phone"/>
+                                </div>
+                            </div>
+                            <div style="clear:both;"></div>
                         </div>
-
-                        <!-- LINEAS -->
-                        <table class="table table-sm table-bordered">
-
+                        <table style="width:100%; border-collapse:collapse; margin-bottom:40px;">
                             <thead>
-
-                                <tr>
-                                    <th>Producto</th>
-                                    <th class="text-center">Cant.</th>
-                                    <th class="text-end">Precio</th>
-                                    <th class="text-end">Subtotal</th>
+                                <tr style="background:#7b2d26; color:white;">
+                                    <th style="padding:14px; text-align:left; font-size:14px;">DESCRIPCIÓN</th>
+                                    <th style="padding:14px; text-align:center; width:90px; font-size:14px;">CANT.</th>
+                                    <th style="padding:14px; text-align:right; width:140px; font-size:14px;">PRECIO UNITARIO</th>
+                                    <th style="padding:14px; text-align:right; width:160px; font-size:14px;">SUBTOTAL</th>
                                 </tr>
-
                             </thead>
-
                             <tbody>
-
-                                <tr t-foreach="o.invoice_line_ids"
-                                    t-as="line">
-
-                                    <td>
-                                        <span t-out="line.name or ''"/>
-                                    </td>
-
-                                    <td class="text-center">
-                                        <span t-out="line.quantity"/>
-                                    </td>
-
-                                    <td class="text-end">
-                                        <span t-out="line.price_unit"/>
-                                    </td>
-
-                                    <td class="text-end">
-                                        <span t-out="line.price_subtotal"/>
-                                    </td>
-
-                                </tr>
-
+                                <t t-foreach="o.invoice_line_ids.filtered(lambda l: not l.display_type and l.product_id)" t-as="line">
+                                    <tr style="border-bottom:1px solid #e5d6c8;">
+                                        <td style="padding:14px;">
+                                            <div style="font-weight:bold; color:#3b2b23; margin-bottom:4px;">
+                                                <span t-out="line.product_id.display_name"/>
+                                            </div>
+                                            <div style="font-size:11px; color:#7c6a5f;">
+                                                <span t-out="line.name"/>
+                                            </div>
+                                        </td>
+                                        <td style="padding:14px; text-align:center;">
+                                            <span t-out="line.quantity"/>
+                                        </td>
+                                        <td style="padding:14px; text-align:right;">
+                                            <span t-field="line.price_unit" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                        </td>
+                                        <td style="padding:14px; text-align:right; font-weight:bold; color:#7b2d26;">
+                                            <span t-field="line.price_subtotal" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                        </td>
+                                    </tr>
+                                </t>
                             </tbody>
-
                         </table>
-
-                        <!-- TOTALES -->
-                        <div class="row mt-4">
-
-                            <div class="col-6">
-
-                                <!-- RESOLUCION DIAN -->
-                                <strong>
-                                    Resolución DIAN
-                                </strong>
-
-                                <br/>
-
-                                <!-- NUMERO RESOLUCION -->
-                                <t t-if="'l10n_co_dian_resolution_number' in o.journal_id._fields">
-
-                                    <span t-out="o.journal_id.l10n_co_dian_resolution_number or ''"/>
-
-                                </t>
-
-                                <br/>
-
-                                <!-- FECHA RESOLUCION -->
-                                <strong>Vigencia:</strong>
-
-                                <t t-if="'l10n_co_dian_resolution_date' in o.journal_id._fields">
-
-                                    <span t-out="o.journal_id.l10n_co_dian_resolution_date or ''"/>
-
-                                </t>
-
+                        <div style="width:100%; overflow:hidden; margin-top:20px;">
+                            <div style="width:48%; float:left;">
+                                <div style="margin-bottom:25px; line-height:24px;">
+                                    <div style="font-size:16px; font-weight:bold; color:#7b2d26; margin-bottom:8px;">Resolución DIAN</div>
+                                    <div t-if="'l10n_co_dian_resolution_number' in o.journal_id._fields"><strong>Número:</strong>
+                                        <span t-out="o.journal_id.l10n_co_dian_resolution_number or ''"/>
+                                    </div>
+                                    <div t-if="'l10n_co_dian_resolution_date' in o.journal_id._fields">
+                                        <strong>Vigencia:</strong>
+                                        <span t-out="o.journal_id.l10n_co_dian_resolution_date or ''"/>
+                                    </div>
+                                </div>
+                                <div t-if="'l10n_co_edi_cufe_cude_ref' in o._fields and o.l10n_co_edi_cufe_cude_ref">
+                                    <div style="font-size:15px; font-weight:bold; margin-bottom:8px; color:#7b2d26;">CUFE</div>
+                                    <div style="font-size:10px; color:#666; line-height:18px; word-break:break-all;">
+                                        <span t-out="o.l10n_co_edi_cufe_cude_ref"/>
+                                    </div>
+                                </div>
                             </div>
-
-                            <div class="col-6 text-end">
-
-                                <div>
-                                    Subtotal:
-                                    <strong t-out="o.amount_untaxed"/>
+                            <div style="width:42%; float:right; background:#fff8ef; border:1px solid #ead7c0; padding:22px;">
+                                <table style="width:100%; border-collapse:collapse; font-size:15px;">
+                                    <tr>
+                                        <td style="padding-bottom:14px;">Subtotal</td>
+                                        <td style="padding-bottom:14px; text-align:right; font-weight:bold;">
+                                            <span t-field="o.amount_untaxed" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-bottom:14px;">IVA</td>
+                                        <td style="padding-bottom:14px; text-align:right; font-weight:bold;">
+                                            <span t-field="o.amount_tax" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <div style="margin-top:15px; border-top:2px solid #d6c2a3; padding-top:18px; text-align:right; font-size:30px; font-weight:bold; color:#7b2d26;">TOTAL:
+                                    <span t-field="o.amount_total" t-options='{"widget": "monetary", "display_currency": o.currency_id}'/>
                                 </div>
-
-                                <div>
-                                    IVA:
-                                    <strong t-out="o.amount_tax"/>
-                                </div>
-
-                                <div style="font-size:18px;">
-
-                                    TOTAL:
-                                    <strong t-out="o.amount_total"/>
-
-                                </div>
-
                             </div>
-
                         </div>
+                        <div style="clear:both;"></div>
+                        <div style="margin-top:60px; background:#f4d9a1; padding:25px; border:1px solid #d6c2a3;">
+                            <div style="width:48%; float:left; line-height:28px; color:#5a1f17;">
+                                <div style="font-size:16px; font-weight:bold; margin-bottom:10px;">INFORMACIÓN DEL PAGO</div>
+                                <div>
+                                    <strong>Banco:</strong>
+                                    <span t-out="o.company_id.partner_id.bank_ids[:1].bank_id.name if o.company_id.partner_id.bank_ids else ''"/>
+                                </div>
+                                <div>
+                                    <strong>Cuenta:</strong>
+                                    <span t-out="o.company_id.partner_id.bank_ids[:1].acc_number if o.company_id.partner_id.bank_ids else ''"/>
+                                </div>
+                            </div>
+                            <div style="width:48%; float:right; color:#5a1f17; line-height:28px;">
+                                Gracias por tu compra.
 
-                        <!-- CUFE -->
-                        <div class="mt-4"
-                             t-if="'l10n_co_edi_cufe_cude_ref' in o._fields and o.l10n_co_edi_cufe_cude_ref">
-
-                            <strong>
-                                CUFE
-                            </strong>
-
-                            <br/>
-
-                            <span style="font-size:11px;"
-                                  t-out="o.l10n_co_edi_cufe_cude_ref"/>
-
+                                Si tienes preguntas o inquietudes,
+                                comunícate con nosotros.
+                            </div>
+                            <div style="clear:both;"></div>
                         </div>
-
-                        <!-- QR -->
-                        <div class="mt-3"
-                             t-if="'l10n_co_edi_qr_code' in o._fields and o.l10n_co_edi_qr_code">
-
-                            <img t-att-src="image_data_uri(o.l10n_co_edi_qr_code)"
-                                 style="width:140px;height:140px;"/>
-
+                        <div style="margin-top:25px; text-align:right;" t-if="'l10n_co_edi_qr_code' in o._fields and o.l10n_co_edi_qr_code">
+                            <img t-att-src="image_data_uri(o.l10n_co_edi_qr_code)" style="width:120px; height:120px;"/>
                         </div>
-
                     </div>
-
                 </t>
-
             </t>
-
         </t>
-
     </template>
-
 </odoo>
